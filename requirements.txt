@@ -32,3 +32,4 @@ torchvision
 Werkzeug
 youtube-transcript-api
 yt-dlp
+language-tool-python
