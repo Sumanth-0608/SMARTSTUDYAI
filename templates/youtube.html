@@ -16,15 +16,15 @@
         <li><a href="/" class="nav-link">Home</a></li>
         <li><a href="/translator" class="nav-link">Translator</a></li>
         <li><a href="/youtube-notes" class="nav-link">YouTube Notes</a></li>
+        <li><a href="/converters" class="nav-link">Converters</a></li>
+        <li><a href="/resume-builder" class="nav-link">Resume Builder</a></li>
         <li class="nav-dropdown">
-            <a href="#" class="nav-link dropbtn">Converters ▾</a>
+            <a href="#" class="nav-link dropbtn">Documents ▾</a>
             <div class="dropdown-content">
-                <a href="/pdf-to-word">PDF → Word</a>
-                <a href="/word-to-pdf">Word → PDF</a>
-                <a href="/ppt-to-pdf">PPT → PDF</a>
+                <a href="/letter-writer">Letter Writer</a>
+                <a href="/cv-builder">CV Builder</a>
             </div>
         </li>
-        <li><a href="/resume-builder" class="nav-link">Resume Builder</a></li>
         <li><a href="/team" class="nav-link">Team</a></li>
         {% if session.get('user_id') %}
             <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
@@ -32,10 +32,11 @@
     </ul>
 
     <div class="auth-section">
-        <button id="themeToggle" class="theme-btn">🌙</button>
         {% if session.get('user_id') %}
             <div class="profile-dropdown">
-                <span class="username">👤 {{ session.get('username') }}</span>
+                <span class="username">
+                    👤 {{ session.get('username') }}
+                </span>
                 <div class="dropdown-content">
                     <a href="/profile">Profile</a>
                     <a href="/logout">Logout</a>
@@ -48,11 +49,28 @@
     </div>
 </nav>
 
+
 <div class="form-section">
     <h2>📺 YouTube Notes Generator</h2>
+    
+    <!-- API Key Status Indicator -->
+    <div style="margin-bottom: 20px; text-align: center;">
+        <div style="
+            display: inline-block; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 10px;
+            background: #28a745;
+            border: 1px solid #28a745;
+        ">
+            <span style="color: white;">🟢 AI Notes Ready</span>
+        </div>
+    </div>
 
     <form method="POST" id="youtubeForm">
-        <input type="text" name="url" placeholder="Paste YouTube URL here..." required>
+        <input type="text" id="youtube-url" name="url" placeholder="Paste YouTube URL here..." required>
 
         <div class="form-row" style="margin-top:16px;">
             <label for="ai_mode" style="color:#b4c5e4; font-size:14px;">AI Summary Type:</label>
@@ -64,18 +82,175 @@
             </select>
         </div>
 
+        <div class="form-row" style="margin-top:16px;">
+            <label for="transcript_language" style="color:#b4c5e4; font-size:14px; font-weight:600;">Select Language:</label>
+            <select name="transcript_language" id="transcript_language" style="
+                margin-left:8px; 
+                padding:8px 12px; 
+                background:#1e293b; 
+                color:#e2e8f0; 
+                border:2px solid #475569; 
+                border-radius:8px;
+                font-size:14px;
+                min-width:200px;
+                cursor:pointer;
+            ">
+                <option value="english">🇬🇧 English</option>
+                <option value="hindi">🇮🇳 हिन्दी (Hindi)</option>
+                <option value="telugu">🇮🇳 తెలుగు (Telugu)</option>
+                <option value="tamil">🇮🇳 தமிழ் (Tamil)</option>
+                <option value="kannada">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+                <option value="malayalam">🇮🇳 മലയാളം (Malayalam)</option>
+                <option value="marathi">🇮🇳 मराठी (Marathi)</option>
+                <option value="bengali">🇮🇳 বাংলা (Bengali)</option>
+                <option value="gujarati">🇮🇳 ગુજરાતી (Gujarati)</option>
+                <option value="punjabi">🇮🇳 ਪੰਜਾਬੀ (Punjabi)</option>
+            </select>
+        </div>
+
         <div class="button-group" style="margin-top:12px;">
             <button type="submit" name="mode" value="general" id="generalBtn">
-                📝 Generate Notes
+                📝 Generate Transcript
             </button>
-
-            <button type="submit" name="mode" value="ai" id="aiBtn">
-                🤖 AI Smart Notes
+            <button type="button" id="aiNotesBtn" onclick="generateAISmartNotes()">
+                🤖 Generate AI Notes
             </button>
         </div>
-        <div id="ytError" style="color:#ff6b6b; margin-top:10px; display:none;"></div>
+        
+        <div id="loadingSpinner" style="display:none; margin-top:15px; text-align:center; color:#667eea;">
+            <div style="display:inline-block; border:3px solid #667eea; border-top:3px solid transparent; border-radius:50%; width:30px; height:30px; animation:spin 1s linear infinite; margin-right:10px; vertical-align:middle;"></div>
+            <span style="vertical-align:middle;">Processing your video (this may take 15-45 seconds)...</span>
+        </div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+        
+        {% if error_message %}
+            <div id="ytError" style="color:#ff6b6b; margin-top:10px; display:block; padding:12px; background:#1a1a2e; border-left:4px solid #ff6b6b; border-radius:4px;">
+                {{ error_message }}
+            </div>
+        {% else %}
+            <div id="ytError" style="color:#ff6b6b; margin-top:10px; display:none;"></div>
+        {% endif %}
     </form>
 </div>
+
+<!-- AI OUTPUT AREA -->
+<div id="aiResultBox" style="width:80%;margin:30px auto;display:none;">
+    <h3 style="color:#b4c5e4;">🤖 AI Generated Notes</h3>
+
+    <textarea id="notes-output"
+    style="
+    width:100%;
+    height:260px;
+    background:#0f172a;
+    color:#e2e8f0;
+    padding:15px;
+    border-radius:10px;
+    border:none;
+    resize:none;
+    font-size:14px;
+    line-height:1.6;"></textarea>
+</div>
+
+<!-- AI STUDY TOOLS PANEL -->
+<div id="aiStudyToolsPanel" style="width:80%;margin:20px auto;display:none;">
+    <div style="background:linear-gradient(135deg, rgba(78,115,223,0.1), rgba(28,200,138,0.05)); padding:25px; border-radius:15px; border:1px solid rgba(255,255,255,0.1);">
+        <h3 style="color:#b4c5e4; margin-bottom:20px; text-align:center;">🛠️ AI Study Tools</h3>
+        
+        <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;">
+            <button id="quizBtn" class="study-tool-btn" data-tool="quiz">
+                📝 Generate Quiz
+            </button>
+            <button id="flashcardsBtn" class="study-tool-btn" data-tool="flashcards">
+                🎴 Create Flashcards
+            </button>
+            <button id="mindmapBtn" class="study-tool-btn" data-tool="mindmap">
+                🧠 Generate Mindmap
+            </button>
+            <button id="studyplanBtn" class="study-tool-btn" data-tool="studyplan">
+                📅 Study Planner
+            </button>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="toolLoadingSpinner" style="display:none; text-align:center; padding:20px;">
+            <div style="display:inline-block; border:3px solid #4e73df; border-top:3px solid transparent; border-radius:50%; width:30px; height:30px; animation:spin 1s linear infinite; margin-right:10px; vertical-align:middle;"></div>
+            <span style="vertical-align:middle; color:#b4c5e4;">Generating AI study tool...</span>
+        </div>
+        
+        <!-- Tool Output Box -->
+        <div id="toolOutputBox" style="display:none; animation:slideIn 0.5s ease-out;">
+            <h4 id="toolOutputTitle" style="color:#00f2ff; margin-bottom:15px;"></h4>
+            <div id="toolOutputContent" style="
+                background:#0f172a;
+                color:#e2e8f0;
+                padding:20px;
+                border-radius:10px;
+                border:1px solid rgba(0,242,255,0.2);
+                min-height:200px;
+                max-height:400px;
+                overflow-y:auto;
+                font-size:14px;
+                line-height:1.6;
+                white-space:pre-wrap;
+            "></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.study-tool-btn {
+    padding:12px 20px;
+    background:linear-gradient(135deg, #4e73df, #1cc88a);
+    color:white;
+    border:none;
+    border-radius:25px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.3s ease;
+    font-size:14px;
+    box-shadow:0 4px 15px rgba(78,115,223,0.2);
+}
+
+.study-tool-btn:hover {
+    transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(78,115,223,0.3);
+    background:linear-gradient(135deg, #1cc88a, #4e73df);
+}
+
+.study-tool-btn:active {
+    transform:translateY(0);
+}
+
+@keyframes slideIn {
+    from {
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to {
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+#toolOutputBox::-webkit-scrollbar {
+    width:8px;
+}
+
+#toolOutputBox::-webkit-scrollbar-track {
+    background:rgba(255,255,255,0.05);
+    border-radius:10px;
+}
+
+#toolOutputBox::-webkit-scrollbar-thumb {
+    background:linear-gradient(135deg, #4e73df, #1cc88a);
+    border-radius:10px;
+}
+</style>
 
 <!-- HISTORY SECTION -->
 <div class="top-history">
@@ -144,8 +319,81 @@
                     {% endif %}
                 {% endfor %}
             </div>
-        </div>
 
+            <div class="ai-notes-section">
+
+<h3>🤖 AI Generated Notes</h3>
+
+<textarea id="notes-output"
+        style="
+        width:100%;
+        height:250px;
+        background:#0f172a;
+        color:#e2e8f0;
+        padding:15px;
+        border-radius:10px;
+        border:none;
+        resize:none;
+        font-size:14px;
+        line-height:1.6;
+        "
+        placeholder="AI notes will appear here...">
+        </textarea>
+
+<div style="margin-top: 15px;">
+    <button id="generateAINotesBtn" onclick="generateHuggingFaceNotes()" style="
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #4e73df, #1cc88a);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(78,115,223,0.2);
+    " onmouseover="this.style.background='linear-gradient(135deg, #1cc88a, #4e73df)'" onmouseout="this.style.background='linear-gradient(135deg, #4e73df, #1cc88a)'">
+        🤖 Generate AI Notes
+    </button>
+</div>
+
+<div id="aiNotesResult" style="margin-top: 20px; display: none;">
+    <h4 style="color: #b4c5e4; margin-bottom: 10px;">📋 Summary</h4>
+    <div id="aiSummary" style="
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(78,115,223,0.3);
+        margin-bottom: 20px;
+        font-size: 14px;
+        line-height: 1.6;
+    "></div>
+    
+    <h4 style="color: #b4c5e4; margin-bottom: 10px;">🎯 Key Points</h4>
+    <ul id="aiBulletPoints" style="
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(78,115,223,0.3);
+        font-size: 14px;
+        line-height: 1.6;
+        list-style-position: inside;
+    "></ul>
+</div>
+
+     </div>
+        </div>
+            
+            <!-- PDF BUTTON -->
+            <form action="/download_pdf" method="POST" class="pdf-box">
+                <input type="hidden" name="notes" value="{{ notes }}">
+                <button type="submit">⬇️ Download PDF</button>
+            </form>
+
+        </div> <!-- END right-panel -->
+    </div> <!-- END container -->
         <!-- PDF BUTTON -->
         <form action="/download_pdf" method="POST" class="pdf-box">
             <input type="hidden" name="notes" value="{{ notes }}">
@@ -192,8 +440,8 @@ function jumpTo(timestamp) {
     let parts = timestamp.split(":");
     let seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
 
-    console.log("Jumping to:", seconds);
-
+    console.log("Jumping to:", seconds, "seconds from timestamp:", timestamp);
+    
     player.seekTo(seconds, true);
     player.playVideo();
 }
@@ -208,14 +456,15 @@ function highlightCurrentNote() {
     let activeNote = null;
 
     for (let i = 0; i < notes.length; i++) {
-        let time = notes[i].dataset.time;
+        let note = notes[i];
+        let time = note.dataset.time;
+        
         if (!time) continue;
 
         let parts = time.split(":");
-        let seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        let noteSeconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
 
         let nextSeconds = Infinity;
-
         if (i < notes.length - 1) {
             let nextTime = notes[i + 1].dataset.time;
             if (nextTime) {
@@ -224,8 +473,8 @@ function highlightCurrentNote() {
             }
         }
 
-        if (currentTime >= seconds && currentTime < nextSeconds) {
-            activeNote = notes[i];
+        if (currentTime >= noteSeconds && currentTime < nextSeconds) {
+            activeNote = note;
             break;
         }
     }
@@ -302,21 +551,372 @@ document.querySelectorAll('.ai-btn').forEach(btn => {
     });
 });
 
-
 // handle form submission
 const youtubeForm = document.getElementById('youtubeForm');
 youtubeForm.addEventListener('submit', function(e) {
     const generalBtn = document.getElementById('generalBtn');
-    const aiBtn = document.getElementById('aiBtn');
+    const aiBtn = document.getElementById('aiNotesBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
     const errorDiv = document.getElementById('ytError');
+    const languageSelect = document.getElementById('transcript_language');
+    const selectedLanguage = languageSelect.value;
+    
     errorDiv.style.display = 'none';
+    loadingSpinner.style.display = 'block';
+    
+    // Update loading message based on language
+    if (selectedLanguage === 'english') {
+        loadingSpinner.querySelector('span').textContent = 'Generating transcript from available sources...';
+    } else {
+        loadingSpinner.querySelector('span').textContent = `Generating transcript and translating to ${languageSelect.options[languageSelect.selectedIndex].text.replace(/[^\w\s]/gi, '')}...`;
+    }
+    
     generalBtn.disabled = true;
     aiBtn.disabled = true;
-    generalBtn.textContent = 'Processing...';
-    aiBtn.textContent = 'Processing...';
+    generalBtn.style.opacity = '0.6';
+    aiBtn.style.opacity = '0.6';
 });
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+async function generateAISmartNotes() {
+    console.log("AI button clicked");
+
+    const urlInput = document.getElementById("youtube-url");
+    const languageSelect = document.getElementById("transcript_language");
+
+    if(!urlInput){
+        alert("URL input not found");
+        return;
+    }
+
+    const url = urlInput.value;
+    const selectedLanguage = languageSelect.value;
+
+    if(!url){
+        alert("Please paste a YouTube link");
+        return;
+    }
+
+    const outputBox = document.getElementById("notes-output");
+    const aiBox = document.getElementById("aiResultBox");
+    const studyToolsPanel = document.getElementById("aiStudyToolsPanel");
+
+    aiBox.style.display = "block";
+
+    if(!outputBox){
+        alert("AI output box missing");
+        return;
+    }
+
+    outputBox.value = "⏳ Generating AI notes in " + selectedLanguage + "...";
+
+    try{
+        const response = await fetch("/generate-ai-notes",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({url:url, language:selectedLanguage})
+        });
+
+        const data = await response.json();
+
+        console.log("Server response:", data);
+
+if (data.success) {
+
+    document.getElementById("aiResultBox").style.display = "block";
+
+    const notesOutput = document.getElementById("notes-output");
+    notesOutput.value = data.notes;
+
+} else {
+    alert(data.error);
+}
+    }
+        // Format the structured AI data
+        
+    catch(error){
+        console.error(error);
+        outputBox.value = "❌ AI generation failed";
+    }
+}
+
+async function translateTranscript() {
+    const urlInput = document.getElementById("youtube-url");
+    const languageSelect = document.getElementById("transcript_language");
+    const outputBox = document.getElementById("notes-output");
+    const errorDiv = document.getElementById("ytError");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+    
+    if (!urlInput.value.trim()) {
+        alert("Please paste a YouTube URL first and generate transcript.");
+        return;
+    }
+    
+    if (!outputBox.value.trim()) {
+        alert("Please generate transcript first before translating.");
+        return;
+    }
+    
+    const selectedLanguage = languageSelect.value;
+    const transcriptText = outputBox.value;
+    
+    // Show loading
+    loadingSpinner.style.display = "block";
+    errorDiv.style.display = "none";
+    outputBox.value = "🌐 Translating transcript to " + selectedLanguage + "...";
+    
+    try {
+        const response = await fetch("/translate-transcript", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                transcript: transcriptText,
+                language: selectedLanguage
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Display translated transcript
+        outputBox.value = data.translated_transcript;
+        
+        // Update notes container if it exists
+        const notesContainer = document.getElementById("notesContainer");
+        if (notesContainer) {
+            // Clear existing notes
+            notesContainer.innerHTML = "";
+            
+            // Add translated transcript as paragraphs
+            const lines = data.translated_transcript.split('\n');
+            lines.forEach((line, index) => {
+                if (line.trim()) {
+                    const p = document.createElement('p');
+                    p.className = 'note-line';
+                    p.textContent = line;
+                    p.onclick = () => jumpTo(line.substring(1, 6));
+                    notesContainer.appendChild(p);
+                }
+            });
+        }
+        
+    } catch (error) {
+        console.error("Translation error:", error);
+        errorDiv.textContent = "❌ Translation failed: " + error.message;
+        errorDiv.style.display = "block";
+        outputBox.value = transcriptText; // Restore original
+    } finally {
+        loadingSpinner.style.display = "none";
+    }
+}
+
+// AI Study Tools functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Check API key status on page load
+    //checkApiKeyStatus();
+    
+    // Add event listeners to all study tool buttons
+    const studyToolButtons = document.querySelectorAll('.study-tool-btn');
+    
+    studyToolButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const tool = this.getAttribute('data-tool');
+            await callAITool(tool);
+        });
+    });
+});
+
+async function callAITool(tool) {
+    const loadingSpinner = document.getElementById('toolLoadingSpinner');
+    const outputBox = document.getElementById('toolOutputBox');
+    const outputTitle = document.getElementById('toolOutputTitle');
+    const outputContent = document.getElementById('toolOutputContent');
+    const notesOutput = document.getElementById('notes-output');
+    
+    // Get the current transcript or notes text
+    const text = notesOutput.value || '';
+    
+    if (!text.trim()) {
+        alert('Please generate AI Smart Notes first before using study tools.');
+        return;
+    }
+    
+    // Show loading spinner
+    loadingSpinner.style.display = 'block';
+    outputBox.style.display = 'none';
+    
+    try {
+        const response = await fetch('/ai-tool', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tool: tool,
+                text: text
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Hide loading spinner and show results
+        loadingSpinner.style.display = 'none';
+        outputBox.style.display = 'block';
+        
+        // Set title based on tool
+        const titles = {
+            'quiz': '📝 Generated Quiz',
+            'flashcards': '🎴 Generated Flashcards',
+            'mindmap': '🧠 Generated Mind Map',
+            'studyplan': '📅 Generated Study Plan'
+        };
+        
+        outputTitle.textContent = titles[tool] || '🛠️ AI Tool Result';
+        outputContent.textContent = data.result;
+        
+        // Smooth scroll to results
+        outputBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+    } catch (error) {
+        console.error('Error calling AI tool:', error);
+        loadingSpinner.style.display = 'none';
+        outputBox.style.display = 'block';
+        outputTitle.textContent = '❌ Error';
+        outputContent.textContent = 'Failed to generate study tool. Please try again.';
+    }
+}
+
+// HuggingFace AI Notes Generation
+async function generateHuggingFaceNotes() {
+
+    const notesOutput = document.getElementById("notes-output");
+    const aiResultDiv = document.getElementById("aiNotesResult");
+    const urlInput = document.getElementById("youtube-url");
+    const generateBtn = document.getElementById("generateAINotesBtn");
+
+    const transcriptText = notesOutput ? notesOutput.value || notesOutput.innerText : "";
+    const videoUrl = urlInput ? urlInput.value.trim() : "";
+
+    console.log("Transcript length:", transcriptText.length);
+    console.log("Video URL:", videoUrl);
+
+    if (!transcriptText && !videoUrl) {
+        alert("Please generate transcript first or enter YouTube URL");
+        return;
+    }
+
+    aiResultDiv.innerText = "AI notes generating...";
+
+    try {
+
+        const response = await fetch("/generate-ai-notes", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                transcript: transcriptText,
+                video_url: videoUrl
+            })
+        });
+
+        const data = await response.json();
+
+        console.log("Server response:", data);
+
+        if (data.success) {
+            aiResultDiv.innerText = data.notes;
+        } else {
+            aiResultDiv.innerText = "Error: " + data.error;
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        aiResultDiv.innerText = "Failed to generate AI notes.";
+    }
+
+
+    async function callAITool(tool) {
+        const loadingSpinner = document.getElementById('toolLoadingSpinner');
+        const outputBox = document.getElementById('toolOutputBox');
+        const outputTitle = document.getElementById('toolOutputTitle');
+        const outputContent = document.getElementById('toolOutputContent');
+        const notesOutput = document.getElementById('notes-output');
+        
+        // Get the current transcript or notes text
+        const text = notesOutput.value || '';
+        
+        if (!text.trim()) {
+            alert('Please generate AI Smart Notes first before using study tools.');
+            return;
+        }
+        
+        // Show loading spinner
+        loadingSpinner.style.display = 'block';
+        outputBox.style.display = 'none';
+        
+        try {
+            const response = await fetch('/ai-tool', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    tool: tool,
+                    text: text
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Hide loading spinner and show results
+            loadingSpinner.style.display = 'none';
+            outputBox.style.display = 'block';
+            
+            // Set title based on tool
+            const titles = {
+                'quiz': '📝 Generated Quiz',
+                'flashcards': '🎴 Generated Flashcards',
+                'mindmap': '🧠 Generated Mind Map',
+                'studyplan': '📅 Generated Study Plan'
+            };
+            
+            outputTitle.textContent = titles[tool] || '🛠️ AI Tool Result';
+            outputContent.textContent = data.result;
+            
+            // Smooth scroll to results
+            outputBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+        } catch (error) {
+            console.error('Error calling AI tool:', error);
+            loadingSpinner.style.display = 'none';
+            outputBox.style.display = 'block';
+            outputTitle.textContent = '❌ Error';
+            outputContent.textContent = 'Failed to generate study tool. Please try again.';
+        }
+    }
+
+    // HuggingFace AI Notes Generation
+    }
+    </script>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% include 'utilities.html' %}
+    <script src="{{ url_for('static', filename='utility_panel.js') }}"></script>
 {% include 'utilities.html' %}
 <script src="{{ url_for('static', filename='utility_panel.js') }}"></script>
 

@@ -6,17 +6,13 @@ if(localStorage.getItem("theme") === "dark"){
     toggleBtn.textContent = "☀️";
 }
 
-toggleBtn.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
+const el = document.getElementById("YOUR_ID");
 
-    if(document.body.classList.contains("dark-mode")){
-        localStorage.setItem("theme", "dark");
-        toggleBtn.textContent = "☀️";
-    } else {
-        localStorage.setItem("theme", "light");
-        toggleBtn.textContent = "🌙";
-    }
-});
+if (el) {
+    el.addEventListener("click", function () {
+        // your logic
+    });
+}
 
 // ===== SMOOTH SCROLL NAVIGATION =====
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {

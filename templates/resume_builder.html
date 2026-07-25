@@ -7,6 +7,107 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
+        /* Enhanced Floating Background Elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .element-1 {
+            width: 80px;
+            height: 80px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+            animation-duration: 25s;
+        }
+        
+        .element-2 {
+            width: 60px;
+            height: 60px;
+            top: 70%;
+            right: 15%;
+            animation-delay: 5s;
+            animation-duration: 30s;
+        }
+        
+        .element-3 {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 10s;
+            animation-duration: 35s;
+        }
+        
+        .element-4 {
+            width: 40px;
+            height: 40px;
+            top: 30%;
+            right: 30%;
+            animation-delay: 15s;
+            animation-duration: 20s;
+        }
+        
+        .element-5 {
+            width: 120px;
+            height: 120px;
+            top: 50%;
+            left: 50%;
+            animation-delay: 20s;
+            animation-duration: 40s;
+        }
+        
+        .element-6 {
+            width: 70px;
+            height: 70px;
+            top: 15%;
+            right: 10%;
+            animation-delay: 25s;
+            animation-duration: 28s;
+        }
+        
+        .element-7 {
+            width: 90px;
+            height: 90px;
+            bottom: 15%;
+            right: 25%;
+            animation-delay: 30s;
+            animation-duration: 32s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) translateX(0px) rotate(0deg);
+                opacity: 0.1;
+            }
+            25% {
+                transform: translateY(-20px) translateX(10px) rotate(90deg);
+                opacity: 0.2;
+            }
+            50% {
+                transform: translateY(10px) translateX(-10px) rotate(180deg);
+                opacity: 0.15;
+            }
+            75% {
+                transform: translateY(-10px) translateX(20px) rotate(270deg);
+                opacity: 0.25;
+            }
+        }
+        
         /* ===== RESUME BUILDER MAIN STYLES ===== */
         .resume-main-container {
             max-width: 1600px;
@@ -637,6 +738,17 @@
 </head>
 <body>
 
+<!-- Floating Background Elements -->
+<div class="floating-elements">
+    <div class="floating-element element-1"></div>
+    <div class="floating-element element-2"></div>
+    <div class="floating-element element-3"></div>
+    <div class="floating-element element-4"></div>
+    <div class="floating-element element-5"></div>
+    <div class="floating-element element-6"></div>
+    <div class="floating-element element-7"></div>
+</div>
+
 <!-- Navigation Bar -->
 <nav class="navbar">
     <div class="logo">
@@ -647,15 +759,15 @@
         <li><a href="/" class="nav-link">Home</a></li>
         <li><a href="/translator" class="nav-link">Translator</a></li>
         <li><a href="/youtube-notes" class="nav-link">YouTube Notes</a></li>
+        <li><a href="/converters" class="nav-link">Converters</a></li>
+        <li><a href="/resume-builder" class="nav-link">Resume Builder</a></li>
         <li class="nav-dropdown">
-            <a href="#" class="nav-link dropbtn">Converters ▾</a>
+            <a href="#" class="nav-link dropbtn">Documents ▾</a>
             <div class="dropdown-content">
-                <a href="/pdf-to-word">PDF → Word</a>
-                <a href="/word-to-pdf">Word → PDF</a>
-                <a href="/ppt-to-pdf">PPT → PDF</a>
+                <a href="/letter-writer">Letter Writer</a>
+                <a href="/cv-builder">CV Builder</a>
             </div>
         </li>
-        <li><a href="/resume-builder" class="nav-link">Resume Builder</a></li>
         <li><a href="/team" class="nav-link">Team</a></li>
         {% if session.get('user_id') %}
             <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
@@ -663,10 +775,11 @@
     </ul>
 
     <div class="auth-section">
-        <button id="themeToggle" class="theme-btn">🌙</button>
         {% if session.get('user_id') %}
             <div class="profile-dropdown">
-                <span class="username">👤 {{ session.get('username') }}</span>
+                <span class="username">
+                    👤 {{ session.get('username') }}
+                </span>
                 <div class="dropdown-content">
                     <a href="/profile">Profile</a>
                     <a href="/logout">Logout</a>
@@ -678,6 +791,7 @@
         {% endif %}
     </div>
 </nav>
+
 
 <!-- Page Title -->
 <div class="page-title">

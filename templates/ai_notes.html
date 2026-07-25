@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>AI Notes Generator - SmartStudyAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #4e73df;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #6c757d;
+            font-size: 16px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-section, .output-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .transcript-input {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .output-area {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: #2c3e50;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f5c6cb;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #c3e6cb;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Notes Generator</h1>
+            <p>Paste your transcript and generate intelligent AI-powered notes and questions</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- Input Section -->
+            <div class="input-section">
+                <h2 class="section-title">
+                    📝 Input Transcript
+                </h2>
+                <textarea 
+                    id="transcriptInput" 
+                    class="transcript-input" 
+                    placeholder="Paste your transcript text here... You can get transcripts from the YouTube Notes page.">
+                </textarea>
+                
+                <div class="button-group">
+                    <button id="generateNotesBtn" class="btn btn-primary" onclick="generateAINotes()">
+                        🤖 Generate AI Notes
+                    </button>
+                    <button id="generateQuestionsBtn" class="btn btn-secondary" onclick="generateQuestions()">
+                        ❓ Generate Questions
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Output Section -->
+            <div class="output-section">
+                <h2 class="section-title">
+                    📋 AI Output
+                </h2>
+                
+                <!-- Loading State -->
+                <div id="loadingDiv" class="loading hidden">
+                    <div style="font-size: 18px; margin-bottom: 10px;">⏳ Processing...</div>
+                    <div>Generating AI-powered content from your transcript</div>
+                </div>
+                
+                <!-- Error State -->
+                <div id="errorDiv" class="error hidden"></div>
+                
+                <!-- Success State - Notes -->
+                <div id="notesOutput" class="output-area hidden">
+                    <h3 style="color: #4e73df; margin-bottom: 15px;">🎯 AI Generated Notes</h3>
+                    <div id="notesContent"></div>
+                </div>
+                
+                <!-- Success State - Questions -->
+                <div id="questionsOutput" class="output-area hidden">
+                    <h3 style="color: #1cc88a; margin-bottom: 15px;">❓ Practice Questions</h3>
+                    <div id="questionsContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let isGenerating = false;
+        
+        // Generate AI Notes function
+        async function generateAINotes() {
+            if (isGenerating) return;
+            
+            const transcriptInput = document.getElementById('transcriptInput');
+            const loadingDiv = document.getElementById('loadingDiv');
+            const errorDiv = document.getElementById('errorDiv');
+            const notesOutput = document.getElementById('notesOutput');
+            const questionsOutput = document.getElementById('questionsOutput');
+            const generateBtn = document.getElementById('generateNotesBtn');
+            
+            // Get transcript text
+            const transcript = transcriptInput.value.trim();
+            
+            // Validation
+            if (!transcript) {
+                showError('Please paste a transcript first.');
+                return;
+            }
+            
+            if (transcript.length < 50) {
+                showError('Transcript is too short. Please provide more content.');
+                return;
+            }
+            
+            // Set loading state
+            setLoadingState(true, 'notes');
+            
+            try {
+                // Make API request
+                const response = await fetch('/generate-ai-notes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        transcript: transcript
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show notes
+                    document.getElementById('notesContent').textContent = data.notes;
+                    showSuccess('notes');
+                    console.log('AI Notes generated:', data.notes);
+                } else {
+                    showError(data.message || 'Failed to generate AI notes');
+                }
+                
+            } catch (error) {
+                console.error('Error generating AI notes:', error);
+                showError('Failed to connect to server. Please try again.');
+            } finally {
+                setLoadingState(false, 'notes');
+            }
+        }
+        
+        // Generate Questions function
+        async function generateQuestions() {
+            if (isGenerating) return;
+            
+            const transcriptInput = document.getElementById('transcriptInput');
+            const loadingDiv = document.getElementById('loadingDiv');
+            const errorDiv = document.getElementById('errorDiv');
+            const notesOutput = document.getElementById('notesOutput');
+            const questionsOutput = document.getElementById('questionsOutput');
+            const generateBtn = document.getElementById('generateQuestionsBtn');
+            
+            // Get transcript text
+            const transcript = transcriptInput.value.trim();
+            
+            // Validation
+            if (!transcript) {
+                showError('Please paste a transcript first.');
+                return;
+            }
+            
+            if (transcript.length < 50) {
+                showError('Transcript is too short. Please provide more content.');
+                return;
+            }
+            
+            // Set loading state
+            setLoadingState(true, 'questions');
+            
+            try {
+                // Make API request
+                const response = await fetch('/generate-questions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        transcript: transcript
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show questions
+                    document.getElementById('questionsContent').textContent = data.questions;
+                    showSuccess('questions');
+                    console.log('Questions generated:', data.questions);
+                } else {
+                    showError(data.message || 'Failed to generate questions');
+                }
+                
+            } catch (error) {
+                console.error('Error generating questions:', error);
+                showError('Failed to connect to server. Please try again.');
+            } finally {
+                setLoadingState(false, 'questions');
+            }
+        }
+        
+        // Set loading state
+        function setLoadingState(loading, type) {
+            isGenerating = loading;
+            
+            const loadingDiv = document.getElementById('loadingDiv');
+            const errorDiv = document.getElementById('errorDiv');
+            const notesOutput = document.getElementById('notesOutput');
+            const questionsOutput = document.getElementById('questionsOutput');
+            const generateNotesBtn = document.getElementById('generateNotesBtn');
+            const generateQuestionsBtn = document.getElementById('generateQuestionsBtn');
+            
+            // Hide all outputs
+            loadingDiv.classList.add('hidden');
+            errorDiv.classList.add('hidden');
+            notesOutput.classList.add('hidden');
+            questionsOutput.classList.add('hidden');
+            
+            if (loading) {
+                // Show loading
+                loadingDiv.classList.remove('hidden');
+                
+                // Disable buttons
+                generateNotesBtn.disabled = true;
+                generateQuestionsBtn.disabled = true;
+                
+                if (type === 'notes') {
+                    generateNotesBtn.textContent = '⏳ Generating...';
+                } else if (type === 'questions') {
+                    generateQuestionsBtn.textContent = '⏳ Generating...';
+                }
+            } else {
+                // Enable buttons
+                generateNotesBtn.disabled = false;
+                generateQuestionsBtn.disabled = false;
+                generateNotesBtn.innerHTML = '🤖 Generate AI Notes';
+                generateQuestionsBtn.innerHTML = '❓ Generate Questions';
+            }
+        }
+        
+        // Show success state
+        function showSuccess(type) {
+            const loadingDiv = document.getElementById('loadingDiv');
+            const errorDiv = document.getElementById('errorDiv');
+            const notesOutput = document.getElementById('notesOutput');
+            const questionsOutput = document.getElementById('questionsOutput');
+            
+            // Hide loading and error
+            loadingDiv.classList.add('hidden');
+            errorDiv.classList.add('hidden');
+            
+            // Show appropriate output
+            if (type === 'notes') {
+                notesOutput.classList.remove('hidden');
+                questionsOutput.classList.add('hidden');
+            } else if (type === 'questions') {
+                questionsOutput.classList.remove('hidden');
+                notesOutput.classList.add('hidden');
+            }
+        }
+        
+        // Show error state
+        function showError(message) {
+            const loadingDiv = document.getElementById('loadingDiv');
+            const errorDiv = document.getElementById('errorDiv');
+            const notesOutput = document.getElementById('notesOutput');
+            const questionsOutput = document.getElementById('questionsOutput');
+            
+            // Hide loading and outputs
+            loadingDiv.classList.add('hidden');
+            notesOutput.classList.add('hidden');
+            questionsOutput.classList.add('hidden');
+            
+            // Show error
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.classList.remove('hidden');
+            
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Auto-save transcript to localStorage
+        document.getElementById('transcriptInput').addEventListener('input', function() {
+            localStorage.setItem('savedTranscript', this.value);
+        });
+        
+        // Load saved transcript on page load
+        window.addEventListener('load', function() {
+            const savedTranscript = localStorage.getItem('savedTranscript');
+            if (savedTranscript) {
+                document.getElementById('transcriptInput').value = savedTranscript;
+            }
+        });
+    </script>
+</body>
+</html>

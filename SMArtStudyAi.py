@@ -36,11 +36,8 @@ from sumy.parsers.plaintext import PlaintextParser
 # Your key should start with "hf_"
 # 
 # OPTION 1: Paste your key directly here (EASIEST):
-import os
-
 HF_API_KEY = "YOUR_HF_API_KEY"
 OPENROUTER_API_KEY = "YOUR_OPENROUTER_API_KEY"
-
 #
 # OPTION 2: Use environment variable (more secure):
 # HF_API_KEY = os.getenv("HF_API_KEY")

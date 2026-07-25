@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Connect AI Provider - SmartStudyAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .connect-ai-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e1e2f 0%, #2b2b4f 50%, #1a1a2e 100%);
+        }
+
+        .connect-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .connect-title {
+            text-align: center;
+            color: #00f2ff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+        }
+
+        .connect-subtitle {
+            text-align: center;
+            color: #b4c5e4;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            color: #b4c5e4;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(78, 115, 223, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4e73df;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 20px rgba(78, 115, 223, 0.3);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .connect-btn {
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(78, 115, 223, 0.3);
+            margin-top: 10px;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(78, 115, 223, 0.4);
+            background: linear-gradient(135deg, #1cc88a, #4e73df);
+        }
+
+        .connect-btn:active {
+            transform: translateY(0);
+        }
+
+        .security-notice {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(78, 115, 223, 0.1);
+            border: 1px solid rgba(78, 115, 223, 0.3);
+            border-radius: 12px;
+            border-left: 4px solid #4e73df;
+        }
+
+        .security-title {
+            color: #00f2ff;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .security-text {
+            color: #b4c5e4;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .back-link a {
+            color: #4e73df;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: #00f2ff;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .flash-success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid rgba(40, 167, 69, 0.5);
+            color: #28a745;
+        }
+
+        .flash-error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #dc3545;
+        }
+
+        @media (max-width: 600px) {
+            .connect-card {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+
+            .connect-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <h1>✨ SmartStudyAI</h1>
+    </div>
+
+    <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/translator" class="nav-link">Translator</a></li>
+        <li><a href="/youtube-notes" class="nav-link">YouTube Notes</a></li>
+        <li class="nav-dropdown">
+            <a href="#" class="nav-link dropbtn">Converters ▾</a>
+            <div class="dropdown-content">
+                <a href="/pdf-to-word">PDF → Word</a>
+                <a href="/word-to-pdf">Word → PDF</a>
+                <a href="/ppt-to-pdf">PPT → PDF</a>
+            </div>
+        </li>
+        <li><a href="/resume-builder" class="nav-link">Resume Builder</a></li>
+        <li><a href="/team" class="nav-link">Team</a></li>
+        {% if session.get('user_id') %}
+            <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+        {% endif %}
+    </ul>
+
+    <div class="auth-section">
+        <button id="themeToggle" class="theme-btn">🌙</button>
+        {% if session.get('user_id') %}
+            <div class="profile-dropdown">
+                <span class="username">👤 {{ session.get('username') }}</span>
+                <div class="dropdown-content">
+                    <a href="/profile">Profile</a>
+                    <a href="/logout">Logout</a>
+                </div>
+            </div>
+        {% else %}
+            <span class="guest-badge">Guest</span>
+            <a href="/login" class="auth-btn">Login</a>
+        {% endif %}
+    </div>
+</nav>
+
+<div class="connect-ai-container">
+    <div class="connect-card">
+        <h2 class="connect-title">🔗 Connect OpenAI API</h2>
+        <p class="connect-subtitle">
+            Connect your own OpenAI API key to unlock AI Smart Notes features and enhance your learning experience.
+        </p>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/save-api-key">
+            <div class="form-group">
+                <label for="api_key" class="form-label">
+                    📱 Enter your OpenAI API Key
+                </label>
+                <input type="password" 
+                       id="api_key" 
+                       name="api_key" 
+                       placeholder="sk-proj-..." 
+                       required
+                       class="form-input">
+            </div>
+
+            <button type="submit" class="connect-btn">
+                🔗 Connect AI
+            </button>
+        </form>
+
+        <div class="security-notice">
+            <div class="security-title">
+                🔒 Security Notice
+            </div>
+            <p class="security-text">
+                Your API key is stored only in your browser session and never saved on our server. 
+                When you close your browser, the key is automatically deleted for your privacy.
+            </p>
+        </div>
+
+        <div class="back-link">
+            <a href="/youtube-notes">← Back to YouTube Notes</a>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% include 'utilities.html' %}
+<script src="{{ url_for('static', filename='utility_panel.js') }}"></script>
+
+</body>
+</html>

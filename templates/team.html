@@ -16,15 +16,15 @@
         <li><a href="/" class="nav-link">Home</a></li>
         <li><a href="/translator" class="nav-link">Translator</a></li>
         <li><a href="/youtube-notes" class="nav-link">YouTube Notes</a></li>
+        <li><a href="/converters" class="nav-link">Converters</a></li>
+        <li><a href="/resume-builder" class="nav-link">Resume Builder</a></li>
         <li class="nav-dropdown">
-            <a href="#" class="nav-link dropbtn">Converters ▾</a>
+            <a href="#" class="nav-link dropbtn">Documents ▾</a>
             <div class="dropdown-content">
-                <a href="/pdf-to-word">PDF → Word</a>
-                <a href="/word-to-pdf">Word → PDF</a>
-                <a href="/ppt-to-pdf">PPT → PDF</a>
+                <a href="/letter-writer">Letter Writer</a>
+                <a href="/cv-builder">CV Builder</a>
             </div>
         </li>
-        <li><a href="/resume-builder" class="nav-link">Resume Builder</a></li>
         <li><a href="/team" class="nav-link">Team</a></li>
         {% if session.get('user_id') %}
             <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
@@ -32,10 +32,11 @@
     </ul>
 
     <div class="auth-section">
-        <button id="themeToggle" class="theme-btn">🌙</button>
         {% if session.get('user_id') %}
             <div class="profile-dropdown">
-                <span class="username">👤 {{ session.get('username') }}</span>
+                <span class="username">
+                    👤 {{ session.get('username') }}
+                </span>
                 <div class="dropdown-content">
                     <a href="/profile">Profile</a>
                     <a href="/logout">Logout</a>
@@ -47,6 +48,7 @@
         {% endif %}
     </div>
 </nav>
+
 
 <div class="form-section">
     <h2>👥 Our Team</h2>
@@ -82,7 +84,7 @@
         <div class="card" style="width: 200px; padding: 20px; text-align: center; background: rgba(255,255,255,0.1); border-radius: 12px;">
             <div class="card-icon" style="font-size: 40px;">🧑‍🏫</div>
             <h3>Lavan Kumar V</h3>
-            <p>anlytic</p>
+            <p>Analytic </p>
         </div>
         <div class="card" style="width: 200px; padding: 20px; text-align: center; background: rgba(255,255,255,0.1); border-radius: 12px;">
             <div class="card-icon" style="font-size: 40px;">🧑‍🚀</div>
@@ -92,7 +94,7 @@
         <div class="card" style="width: 200px; padding: 20px; text-align: center; background: rgba(255,255,255,0.1); border-radius: 12px;">
             <div class="card-icon" style="font-size: 40px;">🧑‍⚕️</div>
             <h3>Thanish</h3>
-            <p>Support</p>
+            <p>Support </p>
         </div>
     </div>
 
