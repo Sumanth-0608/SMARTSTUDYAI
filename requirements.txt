@@ -1,0 +1,12 @@
+<<<<<<< HEAD
+=======
+networkx==3.6.1
+numba==0.64.0
+numpy==2.4.2
+openai-whisper==20250625
+packaging==26.0
+pdfminer.six==20251230
+pdfplumber==0.11.9
+Flask==3.0.3
+gunicorn==23.0.0
+>>>>>>> 836bea9851f0ec949aa57f218373139f4223d062
