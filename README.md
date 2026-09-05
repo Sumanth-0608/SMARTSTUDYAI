@@ -20,6 +20,19 @@ The platform is designed to help students generate study notes, translate conten
 - 📄 Resume builder
 - ✉️ Letter writing assistance
 - 🎓 Student-focused learning utilities
+- ## 📸 Screenshots
+
+### 🏠 Home Page
+![SmartStudyAI Home](screenshots/home.png)
+
+### 🧠 AI Notes
+![AI Notes](screenshots/Ai-notes.png)
+
+### 📄 Document Tools
+![Document Tools](screenshots/Converters.png)
+
+### 📋 Resume Builder
+![Resume Builder](screenshots/Resume-Builder.png)
 
 ## 🛠️ Technologies
 
