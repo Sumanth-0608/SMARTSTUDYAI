@@ -26,7 +26,7 @@ The platform is designed to help students generate study notes, translate conten
 ![SmartStudyAI Home](screenshots/home.png)
 
 ### 🧠 AI Notes
-![AI Notes](screenshots/Ai-notes.png)
+![AI Notes](screenshots/AI-notes.png)
 
 ### 📄 Document Tools
 ![Document Tools](screenshots/Converters.png)
