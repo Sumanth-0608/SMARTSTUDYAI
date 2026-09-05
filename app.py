@@ -46,7 +46,7 @@ OPENROUTER_API_KEY = "YOUR_OPENROUTER_API_KEY"
 # HF_API_KEY = os.getenv("HF_API_KEY")
 # 
 # After pasting your key, replace "PASTE_YOUR_HUGGING_FACE_API_KEY_HERE" 
-# with your actual key like: HF_API_KEY = "hf_abc123xyz789"
+# with your actual key like: HF_API_KEY = ""
 # =================================================================
 import language_tool_python
 
